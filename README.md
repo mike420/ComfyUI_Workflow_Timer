@@ -2,4 +2,4 @@
 
 <p>A simple workflow timer node for ComfyUI.</p>
 
-![workflow timer](https://ibb.co/LMVscWY)
+![workflow timer](<img width="560" alt="workflow timer node" src="https://github.com/mike420/ComfyUI_Workflow_Timer/blob/main/images/workflow_timer.png">)
