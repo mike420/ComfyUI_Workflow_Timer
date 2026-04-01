@@ -2,5 +2,7 @@ LICENSE
 README.md
 __init__.py
 pyproject.toml
+img/magic_mike.jpg
+img/workflow_timer.png
 py/workflow_timer.py
 js/workflow_timer.js

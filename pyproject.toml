@@ -12,5 +12,5 @@ Repository = "https://github.com/mike420/ComfyUI_Workflow_Timer"
 [tool.comfy]
 PublisherId = "mike420"
 DisplayName = "ComfyUI_Workflow_Timer"
-Icon = ""
+Icon = "https://github.com/mike420/ComfyUI_Workflow_Timer/blob/main/img/magic_mike.jpg"
 includes = [] 
