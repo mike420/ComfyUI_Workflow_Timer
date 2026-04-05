@@ -73,6 +73,16 @@ const GlobalTimer = {
     unregisterNode(node) { this.activeNodes.delete(node); }
 };
 
+function loadStylesheet() {
+    const cssUrl = new URL("workflow_timer.css", import.meta.url);
+    if (!document.querySelector(`link[href="${cssUrl}"]`)) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = cssUrl;
+        document.head.appendChild(link);
+    }
+}
+
 app.registerExtension({
     name: "MagicTools.WorkflowTimer",
 
@@ -101,7 +111,6 @@ app.registerExtension({
             const display = document.createElement("div");
             display.className = "workflow-timer-display";
             display.textContent = this.properties.elapsed_time_str;
-            display.style.fontSize = "50px";
             
             // Last Execution Label
             const lastTime = document.createElement("div");
@@ -132,28 +141,8 @@ app.registerExtension({
         };
     },
 
-    setup() {	
-        if (!document.getElementById("workflow-timer-style")) {
-            const style = document.createElement("style");
-            style.id = "workflow-timer-style";
-            style.textContent = `
-                .workflow-timer-display {
-                    font-family:'Courier New','Consolas','Monaco',monospace;
-                    font-weight:bold;
-                    color: #fff;
-                    white-space: nowrap;
-                    letter-spacing: 0.05em;
-                }
-                .workflow-timer-last-run {
-                    font-family: sans-serif;
-                    color: #888;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-            `;
-            document.head.appendChild(style);
-        }
-
+    setup() {
+        loadStylesheet(); 	
         api.addEventListener("execution_start", () => GlobalTimer.start());
         api.addEventListener("executing", ({ detail }) => {
             if (!detail) GlobalTimer.stop();

@@ -1,7 +1,7 @@
 [project]
 name = "ComfyUI_Workflow_Timer"
 description = "A simple workflow timer node for ComfyUI."
-version = "1.0.1"
+version = "1.0.2"
 license = {file = "LICENSE"} 
 
 [project.urls]
@@ -12,5 +12,5 @@ Repository = "https://github.com/mike420/ComfyUI_Workflow_Timer"
 [tool.comfy]
 PublisherId = "mike420"
 DisplayName = "ComfyUI_Workflow_Timer"
-Icon = "https://thumbs2.imgbox.com/1b/68/FGxogerm_t.jpg"
+Icon = "https://raw.githubusercontent.com/mike420/ComfyUI_Workflow_Timer/refs/heads/main/img/magic_mike.jpg"
 includes = [] 

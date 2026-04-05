@@ -1,0 +1,15 @@
+.workflow-timer-display {
+    font-size: 50px;
+	font-family: monospace;
+	font-weight:bold;
+	color: #fff;
+	white-space: nowrap;
+	letter-spacing: 0.05em;
+}
+
+.workflow-timer-last-run {
+	font-family: sans-serif;
+	color: #888;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
