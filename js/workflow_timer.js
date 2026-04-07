@@ -3,6 +3,7 @@ import { api } from "../../scripts/api.js";
 
 const GlobalTimer = {
     startTime: 0,
+    accumulatedTime: 0, // Track time across pauses
     isRunning: false,
     activeNodes: new Set(),
     lastTimeString: "",
@@ -24,8 +25,9 @@ const GlobalTimer = {
     tick() {
         if (!this.isRunning) return;
 
-        const elapsed = performance.now() - this.startTime;
-        const timeString = this.formatTime(elapsed);
+        const currentSegment = performance.now() - this.startTime;
+        const totalElapsed = this.accumulatedTime + currentSegment;
+        const timeString = this.formatTime(totalElapsed);
 
         if (timeString !== this.lastTimeString) {
             this.lastTimeString = timeString;
@@ -38,34 +40,67 @@ const GlobalTimer = {
         this.rafId = requestAnimationFrame(() => this.tick());
     },
 
-    start() {
+    start(isResume = false) {
         if (this.isRunning) return;
+        
+        if (!isResume) {
+            this.accumulatedTime = 0; // Reset on new execution
+        }
+        
         this.isRunning = true;
         this.startTime = performance.now();
-        this.lastTimeString = "";
         this.tick();
+
+        // Set color to White when running/resuming
+        this.updateColor("#ffffff");
     },
 
-    stop() {
-        if (!this.isRunning) return;
-        this.isRunning = false;
+    /**
+     * @param {string} status - 'success' (Green), 'pause' (Red), 'error' (Red)
+     */
+    stop(status = 'success') {
+        if (!this.isRunning && status === 'pause') return; // Already paused
+        
+        if (this.isRunning) {
+            this.accumulatedTime += (performance.now() - this.startTime);
+            this.isRunning = false;
+        }
+
         if (this.rafId) {
             cancelAnimationFrame(this.rafId);
             this.rafId = null;
         }
 
-        const finalTime = performance.now() - this.startTime;
-        const finalTimeString = this.formatTime(finalTime);
+        const finalTimeString = this.formatTime(this.accumulatedTime);
 
         for (const node of this.activeNodes) {
             if (node.timerDisplay) {
                 node.timerDisplay.textContent = finalTimeString;
             }
-            if (node.lastTimeDisplay) {
-                node.lastTimeDisplay.textContent = `Last: ${finalTimeString}`;
+            if (status === 'success') {
+                if (node.lastTimeDisplay) {
+                    node.lastTimeDisplay.textContent = `Last: ${finalTimeString}`;
+                }
+                node.properties.elapsed_time_str = finalTimeString;
+                node.properties.last_execution_time = finalTimeString;
             }
-            node.properties.elapsed_time_str = finalTimeString;
-            node.properties.last_execution_time = finalTimeString;
+        }
+
+		// Color Logic
+        if (status === 'success') {
+            this.updateColor("#4caf50"); // Finished: Green
+        } else if (status === 'pause') {
+            this.updateColor("#ff9800"); // Paused: Orange
+        } else {
+            this.updateColor("#f44336"); // Error/Cancel: Red
+        }
+    },
+
+    updateColor(color) {
+        for (const node of this.activeNodes) {
+            if (node.timerDisplay) {
+                node.timerDisplay.style.color = color;
+            }
         }
     },
 
@@ -107,12 +142,11 @@ app.registerExtension({
                 width: 100%; height: 100%; background: #000; overflow: hidden; gap: 5px;
             `;
 
-            // Main Timer
             const display = document.createElement("div");
             display.className = "workflow-timer-display";
             display.textContent = this.properties.elapsed_time_str;
+            display.style.color = "#ffffff"; // Default white
             
-            // Last Execution Label
             const lastTime = document.createElement("div");
             lastTime.className = "workflow-timer-last-run";
             lastTime.textContent = `Last Execution: ${this.properties.last_execution_time}`;
@@ -143,11 +177,29 @@ app.registerExtension({
 
     setup() {
         loadStylesheet(); 	
-        api.addEventListener("execution_start", () => GlobalTimer.start());
-        api.addEventListener("executing", ({ detail }) => {
-            if (!detail) GlobalTimer.stop();
+        
+        // Standard Execution Events
+        api.addEventListener("execution_start", () => GlobalTimer.start(false));
+        api.addEventListener("execution_success", () => GlobalTimer.stop('success'));
+        api.addEventListener("execution_error", () => GlobalTimer.stop('error'));
+        api.addEventListener("execution_interrupted", () => GlobalTimer.stop('error'));
+
+        // MTImageComparePause Integration
+        api.addEventListener("mt.image_compare_preview", () => {
+            GlobalTimer.stop('pause'); // Turn Red on preview pause
         });
-        api.addEventListener("execution_error", () => GlobalTimer.stop());
-        api.addEventListener("execution_interrupted", () => GlobalTimer.stop());
+
+        const originalFetch = window.fetch;
+        window.fetch = function() {
+            const url = typeof arguments[0] === 'string' ? arguments[0] : '';
+            
+            if (url.includes('/image_compare_pause/continue/')) {
+                GlobalTimer.start(true); // Resume timer as White
+            } else if (url.includes('/image_compare_pause/cancel')) {
+                GlobalTimer.stop('error'); // Ensure Red on cancel
+            }
+            
+            return originalFetch.apply(this, arguments);
+        };
     }
 });
