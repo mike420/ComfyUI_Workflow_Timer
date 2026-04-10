@@ -7,6 +7,5 @@ img/magic_mike.jpg
 img/workflow_timer.png
 js/workflow_timer.css
 js/workflow_timer.js
-py/__pycache__/workflow_timer.cpython-313.pyc
 py/workflow_timer.py
 pyproject.toml

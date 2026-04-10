@@ -1,6 +1,8 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
+const VERSION = "1.0.5"
+
 const GlobalTimer = {
     startTime: 0,
     accumulatedTime: 0, // Track time across pauses
@@ -137,10 +139,7 @@ app.registerExtension({
             this.bgcolor = "#000000";
 
             const container = document.createElement("div");
-            container.style.cssText = `
-                display: flex; flex-direction: column; align-items: center; justify-content: center;
-                width: 100%; height: 100%; background: #000; overflow: hidden; gap: 5px;
-            `;
+            container.id = "workflow-timer";
 
             const display = document.createElement("div");
             display.className = "workflow-timer-display";
@@ -184,10 +183,12 @@ app.registerExtension({
         api.addEventListener("execution_error", () => GlobalTimer.stop('error'));
         api.addEventListener("execution_interrupted", () => GlobalTimer.stop('error'));
 
-        // MTImageComparePause Integration
-        api.addEventListener("mt.image_compare_preview", () => {
-            GlobalTimer.stop('pause'); // Turn Red on preview pause
-        });
+        // --- Image Compare Integration ---
+        api.addEventListener("mt.image_compare_preview", (event) => {
+            // Check the detail for the isSkipping flag set by image_compare_pause.js
+            if (event.detail && event.detail.isSkipping) return; 
+            GlobalTimer.stop('pause'); // Pause (Orange)
+        });			
 
         const originalFetch = window.fetch;
         window.fetch = function() {
