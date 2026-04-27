@@ -188,15 +188,20 @@ app.registerExtension({
             // Check the detail for the isSkipping flag set by image_compare_pause.js
             if (event.detail && event.detail.isSkipping) return; 
             GlobalTimer.stop('pause'); // Pause (Orange)
-        });			
+        });
+
+        // --- Pause Node Integration ---
+        api.addEventListener("pause_workflow", (event) => {
+            GlobalTimer.stop('pause'); // Pause (Orange)
+        });					
 
         const originalFetch = window.fetch;
         window.fetch = function() {
             const url = typeof arguments[0] === 'string' ? arguments[0] : '';
             
-            if (url.includes('/image_compare_pause/continue/')) {
+            if (url.includes('/image_compare_pause/continue/') || url.includes('/pause_workflow/continue/')) {
                 GlobalTimer.start(true); // Resume timer as White
-            } else if (url.includes('/image_compare_pause/cancel')) {
+            } else if (url.includes('/image_compare_pause/cancel') || url.includes('/pause_workflow/cancel')) {
                 GlobalTimer.stop('error'); // Ensure Red on cancel
             }
             
